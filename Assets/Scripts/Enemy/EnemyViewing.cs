@@ -1,75 +1,50 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(LineRenderer))]
 public class EnemyViewing : MonoBehaviour
 {
-    [SerializeField, Min(1)] int rayCount = 5;
+    // 扇状に飛ばすRayの本数。終点を使ったメッシュ生成のため2本以上にする
+    [SerializeField, Min(2)] int rayCount = 30;
 
+    // 敵の正面を中心としたRayの広がり角度
     [SerializeField, Range(0f, 360f)] float angle = 90f;
 
-    [SerializeField] float distance = 1000f;
+    // Rayの最大距離
+    [SerializeField] float distance = 5f;
 
-    [SerializeField] Color rayColor = Color.red;
+    // 扇形メッシュの色
+    [SerializeField] Color color = Color.red;
 
-    LineRenderer[] lineRenderers;
-    Material runtimeMaterial;
+    public Color Color => color;
+
+    // 外部スクリプトから参照する設定値
+    public float Angle => angle;
+    public float Distance => distance;
+    public int RayCount => rayCount;
+
+    // 各レイの終点（ワールド座標）を外部（FanMeshGenerator）から参照できるように公開
+    public Vector3[] RayEndPoints { get; private set; }
+
+    // 前フレームと現在フレームのヒット対象を比較し、同じColliderへのログ連続出力を防ぐ
     HashSet<Collider> previousHitColliders = new HashSet<Collider>();
     HashSet<Collider> currentHitColliders = new HashSet<Collider>();
 
     private void Awake()
     {
-        int count = Mathf.Max(1, rayCount);
-        lineRenderers = new LineRenderer[count];
-        LineRenderer firstLineRenderer = GetComponent<LineRenderer>();
-
-        Material material = firstLineRenderer.sharedMaterial;
-        if (material == null)
-        {
-            Shader shader = Shader.Find("Sprites/Default");
-            if (shader != null)
-            {
-                runtimeMaterial = new Material(shader);
-                material = runtimeMaterial;
-            }
-        }
-
-        for (int i = 0; i < count; i++)
-        {
-            LineRenderer lineRenderer = i == 0
-                ? firstLineRenderer
-                : new GameObject($"ViewingRay_{i}").AddComponent<LineRenderer>();
-
-            if (i > 0)
-            {
-                lineRenderer.transform.SetParent(transform, false);
-            }
-
-            lineRenderer.positionCount = 2;
-            lineRenderer.useWorldSpace = true;
-            lineRenderer.startWidth = 0.05f;
-            lineRenderer.endWidth = 0.05f;
-            lineRenderer.startColor = rayColor;
-            lineRenderer.endColor = rayColor;
-            if (material != null)
-            {
-                lineRenderer.sharedMaterial = material;
-            }
-
-            lineRenderers[i] = lineRenderer;
-        }
+        int count = Mathf.Max(2, rayCount);
+        RayEndPoints = new Vector3[count]; // 終点配列の初期化
     }
 
     void Update()
     {
         Vector3 origin = transform.position;
-        for (int i = 0; i < lineRenderers.Length; i++)
+        for (int i = 0; i < RayEndPoints.Length; i++)
         {
-            float rayAngle = lineRenderers.Length == 1
-                ? 0f
-                : Mathf.Lerp(-angle / 2f, angle / 2f, i / (float)(lineRenderers.Length - 1));
+            // 正面を中心に、扇の左端から右端まで均等にRayを配置する
+            float rayAngle = Mathf.Lerp(-angle / 2f, angle / 2f, i / (float)(RayEndPoints.Length - 1));
             Vector3 direction = Quaternion.AngleAxis(rayAngle, Vector3.up) * transform.forward;
 
+            // 指定距離内でRayに当たったColliderをすべて取得する
             RaycastHit[] hits = Physics.RaycastAll(origin, direction, distance);
             float nearestHitDistance = float.PositiveInfinity;
             Vector3 endPosition = origin + direction * distance;
@@ -77,6 +52,7 @@ public class EnemyViewing : MonoBehaviour
             foreach (RaycastHit hit in hits)
             {
                 Collider hitCollider = hit.collider;
+                // 自分自身や子オブジェクトのColliderは検知対象から除外する
                 if (hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
                 {
                     continue;
@@ -85,9 +61,16 @@ public class EnemyViewing : MonoBehaviour
                 currentHitColliders.Add(hitCollider);
                 if (!previousHitColliders.Contains(hitCollider))
                 {
+                    // 新しく検知したColliderだけログに出力する
                     Debug.Log($"Ray hit: {hitCollider.name}", hitCollider);
                 }
 
+                if(hitCollider.name == "Player")
+                {
+                    continue;
+                }
+
+                // Rayの終点を最も近いColliderのヒット位置にする
                 if (hit.distance < nearestHitDistance)
                 {
                     nearestHitDistance = hit.distance;
@@ -95,21 +78,15 @@ public class EnemyViewing : MonoBehaviour
                 }
             }
 
-            lineRenderers[i].SetPosition(0, origin);
-            lineRenderers[i].SetPosition(1, endPosition);
+            // 計算した終点を配列に保存
+            RayEndPoints[i] = endPosition;
         }
 
+        // 次フレームとの比較に備えて、ヒット集合を入れ替える
         HashSet<Collider> previousFrameHits = previousHitColliders;
         previousHitColliders = currentHitColliders;
         currentHitColliders = previousFrameHits;
         currentHitColliders.Clear();
     }
 
-    private void OnDestroy()
-    {
-        if (runtimeMaterial != null)
-        {
-            Destroy(runtimeMaterial);
-        }
-    }
 }

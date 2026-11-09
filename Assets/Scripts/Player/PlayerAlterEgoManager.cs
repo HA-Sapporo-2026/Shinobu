@@ -2,9 +2,11 @@ using UnityEngine;
 
 public class PlayerAlterEgoManager : MonoBehaviour
 {
-    public PlayerAlterEgo playerAlterEgoPrefab;
+    [SerializeField] PlayerAlterEgo playerAlterEgoPrefab;
 
-    public int maxPlayerAlterEgoNum;
+    [SerializeField] int maxPlayerAlterEgoNum;
+
+    public int MaxPlayerAlterEgoNum => maxPlayerAlterEgoNum;
 
     PlayerAlterEgo[] playerAlterEgos;
 

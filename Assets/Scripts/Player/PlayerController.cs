@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] PlayerAlterEgoManager playerAlterEgoManager;
     float alterEgoTime;
 
-    public float coolTimer = 0f;
+    float coolTimer = 0f;
 
     Vector3 stepPosition;
 
@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        alterEgoTime = stepTime / playerAlterEgoManager.maxPlayerAlterEgoNum;
+        alterEgoTime = stepTime / playerAlterEgoManager.MaxPlayerAlterEgoNum;
     }
 
     // Update is called once per frame
