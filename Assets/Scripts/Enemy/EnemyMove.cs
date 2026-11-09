@@ -58,10 +58,12 @@ public class EnemyMove : MonoBehaviour
         float elapsed = 0f;
         WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
 
-        while (elapsed < roundTripTime)
+        while ((targetPosition - rigidbody3d.position).sqrMagnitude > 0.0001f)
         {
-            float t = Mathf.Clamp01(elapsed / roundTripTime);
-            rigidbody3d.MovePosition(Vector3.Lerp(startPosition, targetPosition, t));
+            rigidbody3d.MovePosition(Vector3.MoveTowards(
+                rigidbody3d.position,
+                targetPosition,
+                moveSpeed * Time.fixedDeltaTime));
             yield return waitForFixedUpdate;
 
             elapsed += Time.fixedDeltaTime;
