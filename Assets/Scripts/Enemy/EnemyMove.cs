@@ -15,7 +15,7 @@ public class EnemyMove : MonoBehaviour
 
     int roundTrip = 1;
 
-    [SerializeField] float roundTripTime;
+    [SerializeField] float moveSpeed;
 
     private void Start()
     {
@@ -36,9 +36,6 @@ public class EnemyMove : MonoBehaviour
             roundTrip = roundTrip * (-1);
         }
 
-
-        Vector3 startPosition = rigidbody3d.position;
-
         Vector3 direction = targetPosition - rigidbody3d.position;
         direction.y = 0f;
 
@@ -49,13 +46,12 @@ public class EnemyMove : MonoBehaviour
 
         Debug.Log(rigidbody3d.position);
 
-        if (roundTripTime <= 0f)
+        if (moveSpeed <= 0f)
         {
             rigidbody3d.position = targetPosition;
             yield break;
         }
 
-        float elapsed = 0f;
         WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
 
         while ((targetPosition - rigidbody3d.position).sqrMagnitude > 0.0001f)
@@ -65,8 +61,6 @@ public class EnemyMove : MonoBehaviour
                 targetPosition,
                 moveSpeed * Time.fixedDeltaTime));
             yield return waitForFixedUpdate;
-
-            elapsed += Time.fixedDeltaTime;
         }
 
         rigidbody3d.MovePosition(targetPosition);

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class Gizmo : MonoBehaviour
+public class MoveGizmos : MonoBehaviour
 {
 
     [SerializeField] EnemyMove enemyMove;

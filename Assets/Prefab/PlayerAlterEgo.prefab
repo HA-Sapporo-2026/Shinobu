@@ -47,7 +47,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAlterEgo
   rend:
   - {fileID: 7893108153067467208}
-  - {fileID: 7684054319084259768}
   duration: 0.1
 --- !u!1001 &7255135864173694566
 PrefabInstance:
@@ -109,11 +108,6 @@ PrefabInstance:
 --- !u!4 &2194321462887564627 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8853127025111124789, guid: 95891c038aa58db4f97b0ea62804effa, type: 3}
-  m_PrefabInstance: {fileID: 7255135864173694566}
-  m_PrefabAsset: {fileID: 0}
---- !u!23 &7684054319084259768 stripped
-MeshRenderer:
-  m_CorrespondingSourceObject: {fileID: 1012277551891466206, guid: 95891c038aa58db4f97b0ea62804effa, type: 3}
   m_PrefabInstance: {fileID: 7255135864173694566}
   m_PrefabAsset: {fileID: 0}
 --- !u!23 &7893108153067467208 stripped
