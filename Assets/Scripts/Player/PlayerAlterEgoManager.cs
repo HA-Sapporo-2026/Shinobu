@@ -2,15 +2,17 @@ using UnityEngine;
 
 public class PlayerAlterEgoManager : MonoBehaviour
 {
-    public PlayerAlterEgo PlayerAlterEgoPrefab;
+    [SerializeField] PlayerAlterEgo playerAlterEgoPrefab;
 
-    public int maxPlayerAlterEgoNum;
+    [SerializeField] int maxPlayerAlterEgoNum;
+
+    public int MaxPlayerAlterEgoNum => maxPlayerAlterEgoNum;
 
     PlayerAlterEgo[] playerAlterEgos;
 
     private void Start()
     {
-        if (PlayerAlterEgoPrefab == null)
+        if (playerAlterEgoPrefab == null)
         {
             Debug.Log("分身用のPrefabがない");
             return;
@@ -21,7 +23,7 @@ public class PlayerAlterEgoManager : MonoBehaviour
         for (int i = 0; i < maxPlayerAlterEgoNum; i++)
         {
             // Obuject.Instantiateを使用して分身オブジェクトを動的に生成する
-            playerAlterEgos[i] = Instantiate(PlayerAlterEgoPrefab);
+            playerAlterEgos[i] = Instantiate(playerAlterEgoPrefab);
 
             // 分身オブジェクトを非アクティブにする
             playerAlterEgos[i].gameObject.SetActive(false);
