@@ -31,7 +31,7 @@ public class PlayerAlterEgoManager : MonoBehaviour
     }
 
 
-    public PlayerAlterEgo AlterEgoGenerate(Vector3 position)
+    public PlayerAlterEgo AlterEgoGenerate(Vector3 position,Vector3 direction)
     {
         for (int i = 0; i < maxPlayerAlterEgoNum; i++)
         {
@@ -44,7 +44,7 @@ public class PlayerAlterEgoManager : MonoBehaviour
             playerAlterEgos[i].gameObject.SetActive(true);
 
 
-            transform.rotation = Quaternion.LookRotation(position.normalized);
+            playerAlterEgos[i].transform.rotation = Quaternion.LookRotation(direction);
             return playerAlterEgos[i];
         }
 

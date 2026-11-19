@@ -1,6 +1,9 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
+using static UnityEngine.UI.Image;
 
 public class PlayerController : MonoBehaviour
 {
@@ -26,6 +29,8 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] PlayerAlterEgoManager playerAlterEgoManager;
     float alterEgoTime;
+
+    [SerializeField] float wallCollisionToleranceRange = 0.5f; // 壁判定の範囲
 
     float coolTimer = 0f;
 
@@ -103,10 +108,53 @@ public class PlayerController : MonoBehaviour
             if (stepAction.WasPressedThisFrame())
             {
                 Vector2 mousePosition = Mouse.current.position.ReadValue();
+
                 Vector2 screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
+
                 Vector2 direction = (mousePosition - screenCenter).normalized;
+
                 Vector3 stepDirection = new Vector3(direction.x, 0f, direction.y);
-                stepPosition = rigidbody3d.position + stepDirection * stepDistance;
+
+
+                Vector3 position = transform.position;
+
+                position.y += 0.5f;
+
+                RaycastHit[] hits = Physics.RaycastAll(position, stepDirection, stepDistance);
+                float nearestHitDistance = float.PositiveInfinity;
+
+                foreach (RaycastHit hit in hits)
+                {
+                    Collider hitCollider = hit.collider;
+                    // 自分自身や子オブジェクトのColliderは検知対象から除外する
+                    if (hitCollider.transform == transform || hitCollider.transform.IsChildOf(transform))
+                    {
+                        continue;
+                    }
+
+                    // Rayの終点を最も近いColliderのヒット位置にする
+                    if (hit.distance < nearestHitDistance)
+                    {
+                        nearestHitDistance = hit.distance;
+                    }
+                }
+                
+                if(nearestHitDistance != float.PositiveInfinity)
+                {
+                    if (nearestHitDistance <= wallCollisionToleranceRange)
+                    {
+                        stepPosition = rigidbody3d.position;
+                    }
+                    else
+                    {
+                        stepPosition = rigidbody3d.position + stepDirection *
+                        (stepDistance - (stepDistance - nearestHitDistance));
+                    }
+                }
+                else
+                {
+                    stepPosition = rigidbody3d.position + stepDirection * stepDistance;
+                }
 
                 stepFlag = true;
                 coolTimer = 0f;
@@ -116,22 +164,17 @@ public class PlayerController : MonoBehaviour
                     playerObject.rotation = Quaternion.LookRotation(stepDirection);
                 }
 
-                StartCoroutine(MoveRoutine(stepPosition));
+                StartCoroutine(MoveRoutine(stepPosition, stepDirection));
                 return;
             }
         }
     }
 
-    private IEnumerator MoveRoutine(Vector3 targetPosition)
+    private IEnumerator MoveRoutine(Vector3 targetPosition,Vector3 stepDirection)
     {
         Vector3 startPosition = rigidbody3d.position;
 
-        if(invincibilityFlag)
-        {
-           // gameObject.tag = "player";
-        }
-
-        if (stepTime <= 0f)
+        if (stepTime <= 0f　|| transform.position == targetPosition)
         {
             rigidbody3d.position = targetPosition;
             stepFlag = false;
@@ -153,7 +196,7 @@ public class PlayerController : MonoBehaviour
             {
                 alterEgoTimer = 0.0f;
 
-                playerAlterEgoManager.AlterEgoGenerate(rigidbody3d.position);
+                playerAlterEgoManager.AlterEgoGenerate(rigidbody3d.position,stepDirection);
             }
 
             elapsed += Time.fixedDeltaTime;
